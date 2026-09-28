@@ -6,6 +6,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { SessionsListView } from './components/sessions/SessionsListView';
 import { ExpensesListView } from './components/expenses/ExpensesListView';
 import { PlayerRosterView } from './components/players/PlayerRosterView';
+import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useApp();
@@ -29,6 +30,7 @@ function App() {
           <MainContent />
         </div>
         <BottomNav />
+        <PWAInstallBanner />
       </div>
     </AppProvider>
   );
