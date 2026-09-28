@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Subtle background grain noise pattern */
+.bg-grain {
+  background-image: radial-gradient(rgba(58, 196, 175, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Glassmorphism styling */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-card-grainient {
+  background: linear-gradient(135deg, rgba(191, 239, 226, 0.9) 0%, rgba(58, 196, 175, 0.85) 55%, rgba(117, 198, 249, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 30px -8px rgba(58, 196, 175, 0.35);
+}
+
+/* Safe area padding for mobile notch/home bar */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 16px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
