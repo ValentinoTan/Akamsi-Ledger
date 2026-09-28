@@ -62,10 +62,13 @@ export const fetchClubDataFromFirestore = async (): Promise<AppStateData | null>
       // First time initialization: upload current local seed data to cloud
       const initialLocal = loadInitialData();
       lastSyncedHash = getContentHash(initialLocal);
-      await setDoc(docRef, {
-        ...initialLocal,
-        updated_at: new Date().toISOString()
-      });
+      const sanitizedInitial = JSON.parse(
+        JSON.stringify({
+          ...initialLocal,
+          updated_at: new Date().toISOString(),
+        })
+      );
+      await setDoc(docRef, sanitizedInitial);
       return initialLocal;
     }
   } catch (error) {
@@ -95,14 +98,17 @@ export const saveClubDataToFirestore = async (data: AppStateData): Promise<void>
 
   try {
     const docRef = doc(db, CLUB_COLLECTION, CLUB_DOC_ID);
-    await setDoc(docRef, {
-      players: data.players,
-      sessions: data.sessions,
-      attendees: data.attendees,
-      transactions: data.transactions,
-      clubName: data.clubName,
-      updated_at: new Date().toISOString()
-    });
+    const sanitizedData = JSON.parse(
+      JSON.stringify({
+        players: data.players,
+        sessions: data.sessions,
+        attendees: data.attendees,
+        transactions: data.transactions,
+        clubName: data.clubName,
+        updated_at: new Date().toISOString(),
+      })
+    );
+    await setDoc(docRef, sanitizedData);
   } catch (error) {
     console.error('Error saving data to Firestore:', error);
   }
