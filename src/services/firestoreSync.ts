@@ -6,6 +6,18 @@ import { saveData, loadInitialData } from './storage';
 const CLUB_COLLECTION = 'clubs';
 const CLUB_DOC_ID = 'akamsi_ledger_main';
 
+let lastSyncedHash = '';
+
+const getContentHash = (data: AppStateData): string => {
+  return JSON.stringify({
+    p: data.players,
+    s: data.sessions,
+    a: data.attendees,
+    t: data.transactions,
+    c: data.clubName,
+  });
+};
+
 /**
  * Fetch club data once from Cloud Firestore
  */
@@ -19,19 +31,29 @@ export const fetchClubDataFromFirestore = async (): Promise<AppStateData | null>
     const snap = await getDoc(docRef);
 
     if (snap.exists()) {
-      const cloudData = snap.data() as AppStateData;
+      const rawData = snap.data();
+      const cloudData: AppStateData = {
+        players: rawData.players || [],
+        sessions: rawData.sessions || [],
+        attendees: rawData.attendees || [],
+        transactions: rawData.transactions || [],
+        clubName: rawData.clubName || 'Akamsi Badminton Club',
+      };
+
       // If Firestore has old demo PB Smash Nusantara data, replace with real Akamsi data
       if (cloudData.clubName === 'PB Smash Nusantara') {
         const realData = loadInitialData();
         await saveClubDataToFirestore(realData);
         return realData;
       }
-      // Cache latest cloud data locally
+
+      lastSyncedHash = getContentHash(cloudData);
       saveData(cloudData);
       return cloudData;
     } else {
       // First time initialization: upload current local seed data to cloud
       const initialLocal = loadInitialData();
+      lastSyncedHash = getContentHash(initialLocal);
       await setDoc(docRef, {
         ...initialLocal,
         updated_at: new Date().toISOString()
@@ -45,7 +67,7 @@ export const fetchClubDataFromFirestore = async (): Promise<AppStateData | null>
 };
 
 /**
- * Save club data to Cloud Firestore and sync locally
+ * Save club data to Cloud Firestore and sync locally (with duplicate write prevention)
  */
 export const saveClubDataToFirestore = async (data: AppStateData): Promise<void> => {
   // Always save locally first for instant UI response and offline support
@@ -55,10 +77,22 @@ export const saveClubDataToFirestore = async (data: AppStateData): Promise<void>
     return;
   }
 
+  const hash = getContentHash(data);
+  // Avoid duplicate writes to save quota and prevent loops
+  if (hash === lastSyncedHash) {
+    return;
+  }
+
+  lastSyncedHash = hash;
+
   try {
     const docRef = doc(db, CLUB_COLLECTION, CLUB_DOC_ID);
     await setDoc(docRef, {
-      ...data,
+      players: data.players,
+      sessions: data.sessions,
+      attendees: data.attendees,
+      transactions: data.transactions,
+      clubName: data.clubName,
       updated_at: new Date().toISOString()
     });
   } catch (error) {
@@ -81,11 +115,31 @@ export const subscribeToClubData = (
     const unsubscribe = onSnapshot(
       docRef,
       (snapshot) => {
+        // Ignore local pending writes initiated by this client
+        if (snapshot.metadata.hasPendingWrites) {
+          return;
+        }
+
         if (snapshot.exists()) {
-          const cloudData = snapshot.data() as AppStateData;
+          const rawData = snapshot.data();
+          const cloudData: AppStateData = {
+            players: rawData.players || [],
+            sessions: rawData.sessions || [],
+            attendees: rawData.attendees || [],
+            transactions: rawData.transactions || [],
+            clubName: rawData.clubName || 'Akamsi Badminton Club',
+          };
+
           if (cloudData.clubName === 'PB Smash Nusantara') {
             return;
           }
+
+          const hash = getContentHash(cloudData);
+          if (hash === lastSyncedHash) {
+            return;
+          }
+
+          lastSyncedHash = hash;
           saveData(cloudData);
           onDataChanged(cloudData);
         }

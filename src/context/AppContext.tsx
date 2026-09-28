@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { Player, Session, SessionAttendee, Transaction, ExpenseCategory } from '../types';
 import { loadInitialData, resetDataToSeed } from '../services/storage';
 import type { AppStateData } from '../services/storage';
@@ -85,9 +85,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'sessions' | 'expenses' | 'players'>('dashboard');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  // Sync to Cloud Firestore and localStorage whenever data changes
+  const isInitialMount = useRef(true);
+  const isRemoteUpdate = useRef(false);
+
+  // Sync to Cloud Firestore and localStorage whenever data changes (guarded & debounced)
   useEffect(() => {
-    saveClubDataToFirestore(data);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (isRemoteUpdate.current) {
+      isRemoteUpdate.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      saveClubDataToFirestore(data);
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, [data]);
 
   // Subscribe to live Firestore updates across devices
@@ -95,11 +112,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isFirebaseConfigured()) {
       fetchClubDataFromFirestore().then((cloudData) => {
         if (cloudData) {
+          isRemoteUpdate.current = true;
           setData(cloudData);
         }
       });
 
       const unsubscribe = subscribeToClubData((cloudData) => {
+        isRemoteUpdate.current = true;
         setData(cloudData);
       });
 
