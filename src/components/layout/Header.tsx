@@ -7,7 +7,6 @@ import {
   RotateCcw, 
   MoreVertical, 
   Wallet,
-  ShieldCheck,
   LayoutDashboard,
   CalendarCheck2,
   Receipt,
@@ -25,7 +24,8 @@ export const Header: React.FC = () => {
     activeTab, 
     setActiveTab, 
     setSelectedSessionId, 
-    totalPendingDebt 
+    totalPendingDebt,
+    isCloudConnected
   } = useApp();
   
   const [showMenu, setShowMenu] = useState(false);
@@ -235,9 +235,14 @@ export const Header: React.FC = () => {
                       <span>Reset ke Data Demo</span>
                     </button>
 
-                    <div className="mt-1 pt-1 border-t border-slate-100 px-3 py-1 text-[10px] text-slate-400 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Disimpan lokal di browser</span>
+                    <div className="mt-1 pt-1.5 border-t border-slate-100 px-3 py-1 text-[10px] flex items-center justify-between">
+                      <span className="text-slate-400 font-medium">Penyimpanan:</span>
+                      <span className={`inline-flex items-center gap-1 font-bold ${
+                        isCloudConnected ? 'text-emerald-600' : 'text-slate-500'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                        {isCloudConnected ? 'Firebase Cloud' : 'Lokal (Offline)'}
+                      </span>
                     </div>
                   </div>
                 </>

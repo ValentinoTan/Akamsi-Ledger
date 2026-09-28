@@ -1,8 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import type { Player, Session, SessionAttendee, Transaction, ExpenseCategory } from '../types';
-import { loadInitialData, saveData, resetDataToSeed } from '../services/storage';
+import { loadInitialData, resetDataToSeed } from '../services/storage';
 import type { AppStateData } from '../services/storage';
 import { generateId } from '../utils/formatters';
+import { 
+  fetchClubDataFromFirestore, 
+  saveClubDataToFirestore, 
+  subscribeToClubData 
+} from '../services/firestoreSync';
+import { isFirebaseConfigured } from '../services/firebase';
 
 interface SessionMetrics {
   totalAttendees: number;
@@ -69,6 +75,7 @@ interface AppContextType {
   resetData: () => void;
   exportData: () => void;
   importData: (jsonData: string) => boolean;
+  isCloudConnected: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -78,10 +85,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'sessions' | 'expenses' | 'players'>('dashboard');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
-  // Sync to localStorage whenever data changes
+  // Sync to Cloud Firestore and localStorage whenever data changes
   useEffect(() => {
-    saveData(data);
+    saveClubDataToFirestore(data);
   }, [data]);
+
+  // Subscribe to live Firestore updates across devices
+  useEffect(() => {
+    if (isFirebaseConfigured()) {
+      fetchClubDataFromFirestore().then((cloudData) => {
+        if (cloudData) {
+          setData(cloudData);
+        }
+      });
+
+      const unsubscribe = subscribeToClubData((cloudData) => {
+        setData(cloudData);
+      });
+
+      return () => unsubscribe();
+    }
+  }, []);
 
   // Total Uang Kas: Sum of all income transactions - sum of all expense transactions
   const { totalUangKas, totalIncome, totalExpense } = useMemo(() => {
@@ -488,7 +512,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const parsed = JSON.parse(jsonString);
       if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.sessions)) {
         setData(parsed);
-        saveData(parsed);
+        saveClubDataToFirestore(parsed);
         return true;
       }
       return false;
@@ -532,6 +556,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     resetData,
     exportData,
     importData,
+    isCloudConnected: isFirebaseConfigured(),
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
