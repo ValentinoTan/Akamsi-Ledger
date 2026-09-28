@@ -20,6 +20,12 @@ export const fetchClubDataFromFirestore = async (): Promise<AppStateData | null>
 
     if (snap.exists()) {
       const cloudData = snap.data() as AppStateData;
+      // If Firestore has old demo PB Smash Nusantara data, replace with real Akamsi data
+      if (cloudData.clubName === 'PB Smash Nusantara') {
+        const realData = loadInitialData();
+        await saveClubDataToFirestore(realData);
+        return realData;
+      }
       // Cache latest cloud data locally
       saveData(cloudData);
       return cloudData;
@@ -77,6 +83,9 @@ export const subscribeToClubData = (
       (snapshot) => {
         if (snapshot.exists()) {
           const cloudData = snapshot.data() as AppStateData;
+          if (cloudData.clubName === 'PB Smash Nusantara') {
+            return;
+          }
           saveData(cloudData);
           onDataChanged(cloudData);
         }
