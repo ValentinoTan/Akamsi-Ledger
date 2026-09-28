@@ -43,12 +43,21 @@ export type ExpenseCategory =
   | 'refreshment'
   | 'misc';
 
+export type IncomeCategory =
+  | 'monthly_dues'
+  | 'donation'
+  | 'merchandise'
+  | 'tournament_prize'
+  | 'initial_balance'
+  | 'session_fee'
+  | 'other_income';
+
 export interface Transaction {
   id: string;
   type: TransactionType;
   amount: number;
   description: string;
-  category?: ExpenseCategory | 'session_fee' | 'other_income';
+  category?: ExpenseCategory | IncomeCategory | string;
   timestamp: string; // ISO string
   session_id?: string;
   attendee_id?: string;

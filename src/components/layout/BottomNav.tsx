@@ -27,7 +27,7 @@ export const BottomNav: React.FC = () => {
   const navItems: NavItem[] = [
     {
       id: 'dashboard',
-      label: 'Kas',
+      label: 'Home',
       icon: LayoutDashboard,
     },
     {
@@ -37,7 +37,7 @@ export const BottomNav: React.FC = () => {
     },
     {
       id: 'expenses',
-      label: 'Biaya',
+      label: 'Buku Kas',
       icon: Receipt,
     },
     {

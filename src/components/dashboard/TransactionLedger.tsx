@@ -43,6 +43,16 @@ export const TransactionLedger: React.FC = () => {
         return 'Perlengkapan';
       case 'session_fee':
         return 'Iuran Sesi';
+      case 'monthly_dues':
+        return 'Iuran Kas / Rutin';
+      case 'donation':
+        return 'Donasi / Sponsor';
+      case 'merchandise':
+        return 'Jual Kok / Grip';
+      case 'tournament_prize':
+        return 'Hadiah / Sparring';
+      case 'initial_balance':
+        return 'Saldo Awal / Modal';
       case 'other_income':
         return 'Pemasukan Lain';
       default:

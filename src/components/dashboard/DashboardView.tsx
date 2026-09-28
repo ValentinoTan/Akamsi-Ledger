@@ -9,11 +9,13 @@ import {
   Calendar, 
   CheckCircle2, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 import { formatRupiah, formatDate } from '../../utils/formatters';
 import { SessionLoggerModal } from '../sessions/SessionLoggerModal';
 import { ExpenseLoggerModal } from '../expenses/ExpenseLoggerModal';
+import { IncomeLoggerModal } from '../income/IncomeLoggerModal';
 import { PlayerModal } from '../players/PlayerModal';
 
 export const DashboardView: React.FC = () => {
@@ -25,6 +27,7 @@ export const DashboardView: React.FC = () => {
   } = useApp();
 
   const [showSessionModal, setShowSessionModal] = useState(false);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
 
@@ -46,43 +49,56 @@ export const DashboardView: React.FC = () => {
           <StatCards />
 
           {/* 2. Courtside Quick Action Buttons */}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <button
               onClick={() => setShowSessionModal(true)}
-              className="p-3.5 rounded-2xl bg-gradient-to-br from-grainient-mint/80 to-grainient-teal/30 hover:to-grainient-teal/50 border border-grainient-teal/40 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
+              className="p-3 rounded-2xl bg-gradient-to-br from-grainient-mint/80 to-grainient-teal/30 hover:to-grainient-teal/50 border border-grainient-teal/40 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-xl bg-grainient-darkTeal text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
-                <PlusCircle className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-grainient-darkTeal text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
+                <PlusCircle className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-bold leading-tight text-slate-900">Sesi Baru</p>
-                <p className="text-[10px] text-slate-500 font-medium hidden sm:block">Kalkulator iuran</p>
+              <div className="min-w-0">
+                <p className="text-xs font-bold leading-tight text-slate-900 truncate">Sesi Baru</p>
+                <p className="text-[10px] text-slate-500 font-medium truncate">Iuran main</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setShowIncomeModal(true)}
+              className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-100/60 hover:to-emerald-100 border border-emerald-200/80 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold leading-tight text-slate-900 truncate">Pemasukan</p>
+                <p className="text-[10px] text-emerald-700 font-medium truncate">Kas / donasi</p>
               </div>
             </button>
 
             <button
               onClick={() => setShowExpenseModal(true)}
-              className="p-3.5 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100/60 hover:to-rose-100 border border-rose-200/80 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
+              className="p-3 rounded-2xl bg-gradient-to-br from-rose-50 to-rose-100/60 hover:to-rose-100 border border-rose-200/80 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
-                <Receipt className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
+                <Receipt className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-bold leading-tight text-slate-900">Catat Biaya</p>
-                <p className="text-[10px] text-slate-500 font-medium hidden sm:block">Beli kok / sewa</p>
+              <div className="min-w-0">
+                <p className="text-xs font-bold leading-tight text-slate-900 truncate">Pengeluaran</p>
+                <p className="text-[10px] text-rose-600 font-medium truncate">Beli kok / sewa</p>
               </div>
             </button>
 
             <button
               onClick={() => setShowPlayerModal(true)}
-              className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-100/60 hover:to-cyan-100 border border-sky-200/80 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
+              className="p-3 rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-100/60 hover:to-cyan-100 border border-sky-200/80 text-slate-800 shadow-2xs flex items-center space-x-2.5 transition active:scale-95 group text-left cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
-                <UserPlus className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition flex-shrink-0">
+                <UserPlus className="w-4 h-4" />
               </div>
-              <div>
-                <p className="text-xs font-bold leading-tight text-slate-900">Member</p>
-                <p className="text-[10px] text-slate-500 font-medium hidden sm:block">Tambah pemain</p>
+              <div className="min-w-0">
+                <p className="text-xs font-bold leading-tight text-slate-900 truncate">Member</p>
+                <p className="text-[10px] text-slate-500 font-medium truncate">Tambah pemain</p>
               </div>
             </button>
           </div>
@@ -174,6 +190,9 @@ export const DashboardView: React.FC = () => {
       {/* Modals */}
       {showSessionModal && (
         <SessionLoggerModal onClose={() => setShowSessionModal(false)} />
+      )}
+      {showIncomeModal && (
+        <IncomeLoggerModal onClose={() => setShowIncomeModal(false)} />
       )}
       {showExpenseModal && (
         <ExpenseLoggerModal onClose={() => setShowExpenseModal(false)} />

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { Player, Session, SessionAttendee, Transaction, ExpenseCategory } from '../types';
+import type { Player, Session, SessionAttendee, Transaction, ExpenseCategory, IncomeCategory } from '../types';
 import { loadInitialData, resetDataToSeed } from '../services/storage';
 import type { AppStateData } from '../services/storage';
 import { generateId } from '../utils/formatters';
@@ -56,7 +56,14 @@ interface AppContextType {
   batchSetAttendancePayment: (sessionId: string, markAsPaid: boolean) => void;
   deleteSession: (sessionId: string) => void;
 
-  // Expense Actions
+  // Transaction Actions (Income & Expense)
+  addIncome: (data: {
+    amount: number;
+    description: string;
+    category?: IncomeCategory;
+    timestamp?: string;
+    player_id?: string;
+  }) => void;
   addExpense: (data: {
     amount: number;
     description: string;
@@ -401,7 +408,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, []);
 
-  // 5. Add Club Expense
+  // 5a. Add Club Income
+  const addIncome = useCallback(
+    (params: {
+      amount: number;
+      description: string;
+      category?: IncomeCategory;
+      timestamp?: string;
+      player_id?: string;
+    }) => {
+      const newTx: Transaction = {
+        id: 'tx_inc_' + generateId(),
+        type: 'income',
+        amount: params.amount,
+        description: params.description,
+        category: params.category || 'other_income',
+        timestamp: params.timestamp || new Date().toISOString(),
+        player_id: params.player_id,
+      };
+
+      setData((prev) => ({
+        ...prev,
+        transactions: [newTx, ...prev.transactions],
+      }));
+    },
+    []
+  );
+
+  // 5b. Add Club Expense
   const addExpense = useCallback(
     (params: {
       amount: number;
@@ -564,6 +598,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     batchSetAttendancePayment,
     deleteSession,
 
+    addIncome,
     addExpense,
     deleteTransaction,
 

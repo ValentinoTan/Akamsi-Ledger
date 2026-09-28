@@ -78,9 +78,9 @@ export const Header: React.FC = () => {
   }
 
   const navItems: HeaderNavItem[] = [
-    { id: 'dashboard', label: 'Kas', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'sessions', label: 'Sesi', icon: CalendarCheck2 },
-    { id: 'expenses', label: 'Biaya', icon: Receipt },
+    { id: 'expenses', label: 'Buku Kas', icon: Receipt },
     { 
       id: 'players', 
       label: 'Member', 
