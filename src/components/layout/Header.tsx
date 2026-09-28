@@ -4,23 +4,23 @@ import { formatShortRupiah } from '../../utils/formatters';
 import { 
   Download, 
   Upload, 
-  RotateCcw, 
   MoreVertical, 
   Wallet,
   LayoutDashboard,
   CalendarCheck2,
   Receipt,
   Users,
-  Plus
+  Plus,
+  Lock
 } from 'lucide-react';
 import { SessionLoggerModal } from '../sessions/SessionLoggerModal';
+import { SecurityPinModal } from '../common/SecurityPinModal';
 
 export const Header: React.FC = () => {
   const { 
     totalUangKas, 
     exportData, 
     importData, 
-    resetData, 
     activeTab, 
     setActiveTab, 
     setSelectedSessionId, 
@@ -30,6 +30,7 @@ export const Header: React.FC = () => {
   
   const [showMenu, setShowMenu] = useState(false);
   const [showQuickSessionModal, setShowQuickSessionModal] = useState(false);
+  const [pinAction, setPinAction] = useState<'backup' | 'restore' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBrandClick = () => {
@@ -63,12 +64,6 @@ export const Header: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
-    if (confirm('Kembalikan semua data ke data contoh bawaan? Perubahan Anda akan direset.')) {
-      resetData();
-      setShowMenu(false);
-    }
-  };
 
   interface HeaderNavItem {
     id: 'dashboard' | 'sessions' | 'expenses' | 'players';
@@ -207,32 +202,36 @@ export const Header: React.FC = () => {
 
                     <button
                       onClick={() => {
-                        exportData();
                         setShowMenu(false);
+                        setPinAction('backup');
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center space-x-2 text-slate-700 transition cursor-pointer font-medium"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center justify-between text-slate-700 transition cursor-pointer font-medium"
                     >
-                      <Download className="w-4 h-4 text-grainient-darkTeal" />
-                      <span>Download Backup (JSON)</span>
+                      <div className="flex items-center space-x-2">
+                        <Download className="w-4 h-4 text-grainient-darkTeal" />
+                        <span>Download Backup (JSON)</span>
+                      </div>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded-md">
+                        <Lock className="w-2.5 h-2.5" />
+                        PIN
+                      </span>
                     </button>
 
                     <button
                       onClick={() => {
-                        fileInputRef.current?.click();
                         setShowMenu(false);
+                        setPinAction('restore');
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center space-x-2 text-slate-700 transition cursor-pointer font-medium"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center justify-between text-slate-700 transition cursor-pointer font-medium"
                     >
-                      <Upload className="w-4 h-4 text-sky-600" />
-                      <span>Pulihkan dari File JSON</span>
-                    </button>
-
-                    <button
-                      onClick={handleReset}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 flex items-center space-x-2 text-rose-600 transition cursor-pointer font-medium"
-                    >
-                      <RotateCcw className="w-4 h-4 text-rose-500" />
-                      <span>Reset ke Data Demo</span>
+                      <div className="flex items-center space-x-2">
+                        <Upload className="w-4 h-4 text-sky-600" />
+                        <span>Pulihkan dari File JSON</span>
+                      </div>
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded-md">
+                        <Lock className="w-2.5 h-2.5" />
+                        PIN
+                      </span>
                     </button>
 
                     <div className="mt-1 pt-1.5 border-t border-slate-100 px-3 py-1 text-[10px] flex items-center justify-between">
@@ -262,6 +261,25 @@ export const Header: React.FC = () => {
       {showQuickSessionModal && (
         <SessionLoggerModal onClose={() => setShowQuickSessionModal(false)} />
       )}
+
+      {/* PIN Security Modal for Backup & Restore */}
+      <SecurityPinModal
+        isOpen={pinAction !== null}
+        onClose={() => setPinAction(null)}
+        onSuccess={() => {
+          if (pinAction === 'backup') {
+            exportData();
+          } else if (pinAction === 'restore') {
+            fileInputRef.current?.click();
+          }
+        }}
+        title={pinAction === 'backup' ? 'Download Backup Kas' : 'Pulihkan Data Kas'}
+        description={
+          pinAction === 'backup'
+            ? 'Akses cadangan data kas terlindungi. Masukkan PIN keamanan untuk mendownload file JSON.'
+            : 'PERINGATAN: Memulihkan data akan menimpa pembukuan kas yang ada. Masukkan PIN keamanan untuk membuka file.'
+        }
+      />
     </>
   );
 };
