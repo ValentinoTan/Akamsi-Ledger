@@ -11,7 +11,10 @@ import {
   Receipt,
   Users,
   Plus,
-  Lock
+  Lock,
+  Smartphone,
+  Share2,
+  X
 } from 'lucide-react';
 import { SessionLoggerModal } from '../sessions/SessionLoggerModal';
 import { SecurityPinModal } from '../common/SecurityPinModal';
@@ -30,6 +33,7 @@ export const Header: React.FC = () => {
   
   const [showMenu, setShowMenu] = useState(false);
   const [showQuickSessionModal, setShowQuickSessionModal] = useState(false);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [pinAction, setPinAction] = useState<'backup' | 'restore' | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -234,6 +238,17 @@ export const Header: React.FC = () => {
                       </span>
                     </button>
 
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setShowInstallHelp(true);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 flex items-center space-x-2 text-slate-700 transition cursor-pointer font-medium"
+                    >
+                      <Smartphone className="w-4 h-4 text-emerald-600" />
+                      <span>Pasang di Layar HP (PWA)</span>
+                    </button>
+
                     <div className="mt-1 pt-1.5 border-t border-slate-100 px-3 py-1 text-[10px] flex items-center justify-between">
                       <span className="text-slate-400 font-medium">Penyimpanan:</span>
                       <span className={`inline-flex items-center gap-1 font-bold ${
@@ -280,6 +295,78 @@ export const Header: React.FC = () => {
             : 'PERINGATAN: Memulihkan data akan menimpa pembukuan kas yang ada. Masukkan PIN keamanan untuk membuka file.'
         }
       />
+
+      {/* PWA Install Instructions Modal */}
+      {showInstallHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4 border border-slate-200 text-slate-700">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <Smartphone className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 text-sm sm:text-base">
+                    Pasang Aplikasi di Layar HP
+                  </h4>
+                  <p className="text-[11px] text-slate-500">Progressive Web App (PWA)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInstallHelp(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
+                <strong>Catatan Keamanan Browser:</strong> Fitur pasang aplikasi HP membutuhkan protokol aman (<strong>HTTPS</strong>). Jika dibuka via IP lokal (<code>http://192.168.x.x</code>), browser HP akan memblokir instalasi otomatis. Pastikan dibuka via link <strong>Vercel (HTTPS)</strong>.
+              </div>
+
+              {/* Android Guide */}
+              <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <p className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Di HP Android (Google Chrome):
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1 text-[11px]">
+                  <li>Buka website di <strong>Google Chrome</strong>.</li>
+                  <li>Ketuk ikon titik tiga (<strong>⋮</strong>) di pojok kanan atas browser.</li>
+                  <li>Pilih <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</li>
+                </ol>
+              </div>
+
+              {/* iOS Guide */}
+              <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <p className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500" />
+                  Di iPhone / iPad (Safari):
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1 text-[11px]">
+                  <li>Buka website di browser <strong>Safari</strong> bawaan Apple.</li>
+                  <li>
+                    Ketuk tombol <strong>Bagikan / Share</strong>
+                    <span className="inline-flex p-0.5 mx-1 bg-white rounded border border-slate-300 align-middle">
+                      <Share2 className="w-3 h-3 text-sky-600" />
+                    </span>
+                    di menu bawah.
+                  </li>
+                  <li>Pilih <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong>.</li>
+                </ol>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowInstallHelp(false)}
+              className="w-full py-2.5 rounded-xl bg-grainient-button text-white text-xs font-bold shadow-xs cursor-pointer"
+            >
+              Tutup Petunjuk
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
