@@ -1,7 +1,7 @@
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import type { AppStateData } from './storage';
-import { saveData, loadInitialData } from './storage';
+import { saveData, loadInitialData, DEFAULT_TRANSACTIONS } from './storage';
 
 const CLUB_COLLECTION = 'clubs';
 const CLUB_DOC_ID = 'akamsi_ledger_main';
@@ -45,6 +45,14 @@ export const fetchClubDataFromFirestore = async (): Promise<AppStateData | null>
         const realData = loadInitialData();
         await saveClubDataToFirestore(realData);
         return realData;
+      }
+
+      if (cloudData.transactions.length === 0 && DEFAULT_TRANSACTIONS.length > 0) {
+        cloudData.transactions = DEFAULT_TRANSACTIONS;
+        lastSyncedHash = getContentHash(cloudData);
+        saveData(cloudData);
+        await saveClubDataToFirestore(cloudData);
+        return cloudData;
       }
 
       lastSyncedHash = getContentHash(cloudData);

@@ -1,6 +1,6 @@
 import type { Player, Session, SessionAttendee, Transaction } from '../types';
 
-const STORAGE_KEY = 'akamsi_ledger_club_data_v1';
+const STORAGE_KEY = 'akamsi_ledger_club_data_v2';
 
 export interface AppStateData {
   players: Player[];
@@ -143,7 +143,32 @@ const DEFAULT_PLAYERS: Player[] = [
 
 const DEFAULT_SESSIONS: Session[] = [];
 const DEFAULT_ATTENDEES: SessionAttendee[] = [];
-const DEFAULT_TRANSACTIONS: Transaction[] = [];
+export const DEFAULT_TRANSACTIONS: Transaction[] = [
+  {
+    id: 'tx-inc-1',
+    type: 'income',
+    amount: 197750,
+    description: 'Pemasukan Kas',
+    category: 'other_income',
+    timestamp: '2026-09-20T10:00:00.000Z',
+  },
+  {
+    id: 'tx-exp-1',
+    type: 'expense',
+    amount: 120000,
+    description: 'Pengeluaran Kas',
+    category: 'misc',
+    timestamp: '2026-09-26T10:00:00.000Z',
+  },
+  {
+    id: 'tx-exp-2',
+    type: 'expense',
+    amount: 149260,
+    description: 'Pengeluaran Kas',
+    category: 'misc',
+    timestamp: '2026-09-27T10:00:00.000Z',
+  },
+];
 
 export const loadInitialData = (): AppStateData => {
   try {
@@ -156,6 +181,9 @@ export const loadInitialData = (): AppStateData => {
         Array.isArray(parsed.sessions) &&
         parsed.clubName !== 'PB Smash Nusantara'
       ) {
+        if (!parsed.transactions || parsed.transactions.length === 0) {
+          parsed.transactions = DEFAULT_TRANSACTIONS;
+        }
         return parsed;
       }
     }
