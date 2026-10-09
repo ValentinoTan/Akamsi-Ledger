@@ -163,7 +163,7 @@ export const SessionLoggerModal: React.FC<SessionLoggerModalProps> = ({ onClose,
                 <input
                   type="number"
                   min="0"
-                  step="5000"
+                  step="any"
                   required
                   value={courtCost}
                   onChange={(e) => setCourtCost(Number(e.target.value))}
@@ -182,7 +182,7 @@ export const SessionLoggerModal: React.FC<SessionLoggerModalProps> = ({ onClose,
                 <input
                   type="number"
                   min="0"
-                  step="5000"
+                  step="any"
                   required
                   value={feePerPlayer}
                   onChange={(e) => setFeePerPlayer(Number(e.target.value))}

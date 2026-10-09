@@ -109,8 +109,8 @@ export const IncomeLoggerModal: React.FC<IncomeLoggerModalProps> = ({ onClose })
               <input
                 type="number"
                 required
-                min="1000"
-                step="500"
+                min="0"
+                step="any"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 text-sm font-black font-mono text-emerald-700"
