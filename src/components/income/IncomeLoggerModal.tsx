@@ -25,6 +25,9 @@ export const IncomeLoggerModal: React.FC<IncomeLoggerModalProps> = ({ onClose })
   const [playerId, setPlayerId] = useState<string>('');
   const [date, setDate] = useState(todayStr);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const categories: { id: IncomeCategory; label: string; desc: string }[] = [
     { id: 'monthly_dues', label: 'Iuran Kas / Rutin', desc: 'Iuran bulanan atau mingguan rutin' },
     { id: 'initial_balance', label: 'Saldo Awal / Tambahan Kas', desc: 'Setoran modal atau saldo pembuka' },
@@ -38,24 +41,31 @@ export const IncomeLoggerModal: React.FC<IncomeLoggerModalProps> = ({ onClose })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!description.trim()) {
-      alert('Mohon isi keterangan atau deskripsi pemasukan.');
+      setErrorMessage('Mohon isi keterangan atau deskripsi pemasukan.');
       return;
     }
-    if (amount <= 0) {
-      alert('Nominal pemasukan harus lebih dari Rp 0.');
+    if (!amount || amount <= 0 || !Number.isFinite(amount)) {
+      setErrorMessage('Nominal pemasukan harus berupa angka lebih dari Rp 0.');
       return;
     }
 
-    addIncome({
-      description: description.trim(),
-      amount,
-      category,
-      player_id: playerId || undefined,
-      timestamp: new Date(date).toISOString(),
-    });
-
-    onClose();
+    setIsSubmitting(true);
+    try {
+      addIncome({
+        description: description.trim(),
+        amount,
+        category,
+        player_id: playerId || undefined,
+        timestamp: new Date(date).toISOString(),
+      });
+      onClose();
+    } catch {
+      setErrorMessage('Gagal menyimpan pemasukan.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -204,21 +214,30 @@ export const IncomeLoggerModal: React.FC<IncomeLoggerModalProps> = ({ onClose })
             </div>
           </div>
 
+          {/* Error message */}
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Footer Submit */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition cursor-pointer"
+              disabled={isSubmitting}
+              className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold shadow-sm transition flex items-center space-x-1.5 cursor-pointer"
+              disabled={isSubmitting || !description.trim() || !amount || amount <= 0 || !Number.isFinite(amount)}
+              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none text-white font-extrabold shadow-sm transition flex items-center space-x-1.5 cursor-pointer"
             >
               <Coins className="w-4 h-4" />
-              <span>Simpan Pemasukan ({formatRupiah(amount)})</span>
+              <span>{isSubmitting ? 'Menyimpan...' : `Simpan Pemasukan (${formatRupiah(amount || 0)})`}</span>
             </button>
           </div>
         </form>

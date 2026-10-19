@@ -9,6 +9,12 @@ import {
   subscribeToClubData 
 } from '../services/firestoreSync';
 import { isFirebaseConfigured } from '../services/firebase';
+import { 
+  computeLedgerBalance, 
+  validateTransactionAmount, 
+  deleteTransactionWithReversal,
+  reconcileLedgerIntegrity 
+} from '../utils/ledger';
 
 interface SessionMetrics {
   totalAttendees: number;
@@ -120,13 +126,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       fetchClubDataFromFirestore().then((cloudData) => {
         if (cloudData) {
           isRemoteUpdate.current = true;
-          setData(cloudData);
+          const { attendees, transactions } = reconcileLedgerIntegrity(
+            cloudData.attendees,
+            cloudData.transactions,
+            cloudData.sessions
+          );
+          setData({
+            ...cloudData,
+            attendees,
+            transactions,
+          });
         }
       });
 
       const unsubscribe = subscribeToClubData((cloudData) => {
         isRemoteUpdate.current = true;
-        setData(cloudData);
+        const { attendees, transactions } = reconcileLedgerIntegrity(
+          cloudData.attendees,
+          cloudData.transactions,
+          cloudData.sessions
+        );
+        setData({
+          ...cloudData,
+          attendees,
+          transactions,
+        });
       });
 
       return () => unsubscribe();
@@ -135,20 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Total Uang Kas: Sum of all income transactions - sum of all expense transactions
   const { totalUangKas, totalIncome, totalExpense } = useMemo(() => {
-    let inc = 0;
-    let exp = 0;
-    data.transactions.forEach((tx) => {
-      if (tx.type === 'income') {
-        inc += tx.amount;
-      } else {
-        exp += tx.amount;
-      }
-    });
-    return {
-      totalIncome: inc,
-      totalExpense: exp,
-      totalUangKas: inc - exp,
-    };
+    return computeLedgerBalance(data.transactions);
   }, [data.transactions]);
 
   // Calculate debt for any player
@@ -417,10 +428,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp?: string;
       player_id?: string;
     }) => {
+      if (!validateTransactionAmount(params.amount)) {
+        console.error('Add income rejected: invalid amount', params.amount);
+        return;
+      }
+
       const newTx: Transaction = {
         id: 'tx_inc_' + generateId(),
         type: 'income',
-        amount: params.amount,
+        amount: Math.round(params.amount),
         description: params.description,
         category: params.category || 'other_income',
         timestamp: params.timestamp || new Date().toISOString(),
@@ -443,10 +459,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       category: ExpenseCategory;
       timestamp?: string;
     }) => {
+      if (!validateTransactionAmount(params.amount)) {
+        console.error('Add expense rejected: invalid amount', params.amount);
+        return;
+      }
+
       const newTx: Transaction = {
         id: 'tx_exp_' + generateId(),
         type: 'expense',
-        amount: params.amount,
+        amount: Math.round(params.amount),
         description: params.description,
         category: params.category,
         timestamp: params.timestamp || new Date().toISOString(),
@@ -460,12 +481,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     []
   );
 
-  // 6. Delete Transaction
+  // 6. Delete Transaction (reverting attendee payment state if linked)
   const deleteTransaction = useCallback((txId: string) => {
-    setData((prev) => ({
-      ...prev,
-      transactions: prev.transactions.filter((t) => t.id !== txId),
-    }));
+    setData((prev) => {
+      const { transactions, attendees } = deleteTransactionWithReversal(
+        txId,
+        prev.transactions,
+        prev.attendees
+      );
+      return {
+        ...prev,
+        transactions,
+        attendees,
+      };
+    });
   }, []);
 
   // 7. Player Management

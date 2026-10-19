@@ -31,25 +31,35 @@ export const ExpenseLoggerModal: React.FC<ExpenseLoggerModalProps> = ({ onClose 
     { id: 'misc', label: 'Lain-lain / Operasional' },
   ];
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!description.trim()) {
-      alert('Mohon isi deskripsi pengeluaran.');
+      setErrorMessage('Mohon isi deskripsi pengeluaran.');
       return;
     }
-    if (amount <= 0) {
-      alert('Nominal harus lebih dari 0.');
+    if (!amount || amount <= 0 || !Number.isFinite(amount)) {
+      setErrorMessage('Nominal pengeluaran harus berupa angka lebih dari Rp 0.');
       return;
     }
 
-    addExpense({
-      description,
-      amount,
-      category,
-      timestamp: new Date(date).toISOString(),
-    });
-
-    onClose();
+    setIsSubmitting(true);
+    try {
+      addExpense({
+        description: description.trim(),
+        amount,
+        category,
+        timestamp: new Date(date).toISOString(),
+      });
+      onClose();
+    } catch {
+      setErrorMessage('Gagal menyimpan pengeluaran.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -170,21 +180,30 @@ export const ExpenseLoggerModal: React.FC<ExpenseLoggerModalProps> = ({ onClose 
             </div>
           </div>
 
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="pt-2 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition"
+              disabled={isSubmitting}
+              className="flex-1 py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="flex-[2] py-3 px-4 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold shadow-md active:scale-98 transition flex items-center justify-center gap-2"
+              disabled={isSubmitting || !description.trim() || !amount || amount <= 0 || !Number.isFinite(amount)}
+              className="flex-[2] py-3 px-4 rounded-2xl bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:transform-none text-white font-extrabold shadow-md active:scale-98 transition flex items-center justify-center gap-2"
             >
               <Check className="w-4 h-4" />
-              <span>Simpan Pengeluaran</span>
+              <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Pengeluaran'}</span>
             </button>
           </div>
         </form>
